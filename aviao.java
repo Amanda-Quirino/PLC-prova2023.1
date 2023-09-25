@@ -14,7 +14,6 @@ public class aviao {
     static List<Thread> thList = new ArrayList<Thread>();
 
     public static void main(String[] args) {
-        Pista pis = new Pista(0);
         // Scanner para pegar os inputs dado pelo usuario
         Scanner leitura = new Scanner(System.in);
         
@@ -24,7 +23,7 @@ public class aviao {
 
         // Pegando o horario de cada um desses avioes
         for (int i=0; i<n; i++) {
-            System.out.println("Digite a saida do aviao " + i + " : ");
+            System.out.print("Digite a saida do aviao " + i + " : ");
             horarioSaidas.add(leitura.nextInt());
         }
 
@@ -79,7 +78,7 @@ public class aviao {
         @Override
         public void run() {
             Integer horario;
-            while (horarioSaidas.size() != 0 && horarioEntradas.size() != 0) {
+            while (horarioSaidas.size() != 0 || horarioEntradas.size() != 0) {
                 synchronized(this){
                     // Printando nome da thread atual
                     System.out.println(Thread.currentThread().getName());
@@ -97,18 +96,12 @@ public class aviao {
                         horario = horarioEntradas.remove(0);
                         terminoUsoPista = horario + atrasoEntrada + 500;
                         saidaReal = horario + atrasoEntrada;
-                        System.out.println("Aterrissagem esperada: " + horario);
-                        System.out.println("Aterrissagem real: " + saidaReal);
-                        System.out.println("Atraso: " + atrasoEntrada);
                     }
                     // Caso nao tennhamos mais avioes aterrisando, printamos o proximo aviao a sair
                     else if (horarioEntradas.size() == 0) {
                         horario = horarioSaidas.remove(0);
                         terminoUsoPista = horario + atrasoSaida + 500;
                         saidaReal = horario + atrasoSaida;
-                        System.out.println("Saida esperada: " + horario);
-                        System.out.println("Saida real: " + saidaReal);
-                        System.out.println("Atraso: " + atrasoSaida);
                     }
                     // Caso tenhamos avioes para sair e para aterrissar
                     else {
@@ -118,22 +111,18 @@ public class aviao {
 
                             terminoUsoPista = horario + atrasoSaida + 500;
                             saidaReal = horario + atrasoSaida;
-                            System.out.println("Saida esperada: " + horario);
-                            System.out.println("Saida real: " + saidaReal);
-                            System.out.println("Atraso: " + atrasoSaida);
                         }
 
                         // Caso contrario
                         else {
                             horario = horarioEntradas.remove(0);
-                            
                             terminoUsoPista = horario + atrasoEntrada + 500;
                             saidaReal = horario + atrasoEntrada;
-                            System.out.println("Aterrissagem esperada: " + horario);
-                            System.out.println("Aterrissagem real: " + saidaReal);
-                            System.out.println("Atraso: " + atrasoEntrada);
                         }
                     }
+                    System.out.println("Aterrissagem esperada: " + horario);
+                    System.out.println("Aterrissagem real: " + saidaReal);
+                    System.out.println("Atraso: " + atrasoEntrada);
                 }
             }
         }
