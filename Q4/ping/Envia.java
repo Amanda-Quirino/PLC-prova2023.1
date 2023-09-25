@@ -3,9 +3,9 @@ package Q4.ping;
 import java.util.Random;
 
 public class Envia implements Runnable{
-    private ServerPing server;
+    private ServerPingLck server;
 
-    public Envia(ServerPing srv) {
+    public Envia(ServerPingLck srv) {
         this.server = srv;
     }
 
@@ -24,12 +24,12 @@ public class Envia implements Runnable{
         Random rdm = new Random();
 
         for (String msg : mensagemEnviadas) {
-            server.set(msg);
+            server.put(msg);
             try {
                 Thread.sleep(rdm.nextInt(300));
             } catch (InterruptedException e) {}
         }
 
-        server.set("fim");
+        server.put("fim");
     }
 }

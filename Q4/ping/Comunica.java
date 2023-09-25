@@ -1,7 +1,7 @@
 package Q4.ping;
 
 public class Comunica {
-    private static ServerPing srv = new ServerPing();
+    private static ServerPingLck srv = new ServerPingLck();
 
     public static void main(String[] args) {
         (new Thread(new Envia(srv))).start();
