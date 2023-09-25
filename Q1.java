@@ -6,9 +6,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
 public class Q1 {
+    // Listas com os horarios dos avioes
     private static List<Integer> horarioSaidas = new ArrayList<Integer>();
     private static List<Integer> horarioEntradas = new ArrayList<Integer>();
+    // Listas com os horarios em que cada pista estara livre
     private static List<Integer> terminoUsoPista = new ArrayList<Integer>();
+    // Lista com as threads que representam as pistas
     private static List<Thread> thPistas = new ArrayList<Thread>();
     private static Integer numPistas = 0;
 
