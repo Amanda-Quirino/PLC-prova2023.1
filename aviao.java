@@ -1,17 +1,15 @@
-package prova;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class aviao {
-    static List<Integer> horarioSaidas = new ArrayList<Integer>();
-    static List<Integer> horarioEntradas = new ArrayList<Integer>();
-    static Integer numPistas = 0;
-    static Integer atrasoSaida = 0;
-    static Integer atrasoEntrada = 0;
-    static List<Thread> thList = new ArrayList<Thread>();
+    private static List<Integer> horarioSaidas = new ArrayList<Integer>();
+    private static List<Integer> horarioEntradas = new ArrayList<Integer>();
+    private static Integer numPistas = 0;
+    private static Integer atrasoSaida = 0;
+    private static Integer atrasoEntrada = 0;
+    private static List<Thread> thList = new ArrayList<Thread>();
 
     public static void main(String[] args) {
         // Scanner para pegar os inputs dado pelo usuario
@@ -70,6 +68,7 @@ public class aviao {
     public static class Pista implements Runnable {
         Integer terminoUsoPista;
         Integer saidaReal;
+        Integer atraso;
 
         public Pista (Integer numero) {
             this.terminoUsoPista = numero;
@@ -79,51 +78,47 @@ public class aviao {
         public void run() {
             Integer horario;
             while (horarioSaidas.size() != 0 || horarioEntradas.size() != 0) {
-                synchronized(this){
-                    // Printando nome da thread atual
-                    System.out.println(Thread.currentThread().getName());
+                synchronized(this) {
                     // Calculando o possivel atraso do proximo aviao a sair
                     if (horarioSaidas.size() != 0) {
-                        atrasoSaida = horarioSaidas.get(0) < terminoUsoPista ? terminoUsoPista - horarioSaidas.get(0) : 0;
+                        atrasoSaida = horarioSaidas.getFirst() < terminoUsoPista ? terminoUsoPista - horarioSaidas.getFirst() : 0;
                     }
                     // Calculando o possivel atraso do proximo aviao a aterrisar
                     if (horarioEntradas.size() != 0) {
-                        atrasoEntrada = horarioEntradas.get(0) < terminoUsoPista ? terminoUsoPista - horarioEntradas.get(0) : 0;
+                        atrasoEntrada = horarioEntradas.getFirst() < terminoUsoPista ? terminoUsoPista - horarioEntradas.getFirst() : 0;
                     }
-                    
                     // Caso nao tenhamos mais avioes saindo, iremos printar o proximo aviao a aterrissar
                     if (horarioSaidas.size() == 0) {
                         horario = horarioEntradas.remove(0);
-                        terminoUsoPista = horario + atrasoEntrada + 500;
-                        saidaReal = horario + atrasoEntrada;
+                        atraso = atrasoEntrada;
                     }
                     // Caso nao tennhamos mais avioes aterrisando, printamos o proximo aviao a sair
                     else if (horarioEntradas.size() == 0) {
                         horario = horarioSaidas.remove(0);
-                        terminoUsoPista = horario + atrasoSaida + 500;
-                        saidaReal = horario + atrasoSaida;
+                        atraso = atrasoSaida;
                     }
-                    // Caso tenhamos avioes para sair e para aterrissar
+                    // Caso o horario do proximo aviao a sair seja mais cedo do que o proximo a aterrissar
+                    else if (horarioSaidas.getFirst() < horarioEntradas.getFirst()){
+                        horario = horarioSaidas.remove(0);
+                        atraso = atrasoSaida;
+                    }
+                    // Caso contrario
                     else {
-                        // Caso o horario do proximo aviao a sair seja mais cedo do que o proximo a aterrissar
-                        if (horarioSaidas.get(0) < horarioEntradas.get(0)) {
-                            horario = horarioSaidas.remove(0);
-
-                            terminoUsoPista = horario + atrasoSaida + 500;
-                            saidaReal = horario + atrasoSaida;
-                        }
-
-                        // Caso contrario
-                        else {
-                            horario = horarioEntradas.remove(0);
-                            terminoUsoPista = horario + atrasoEntrada + 500;
-                            saidaReal = horario + atrasoEntrada;
-                        }
+                        horario = horarioEntradas.remove(0);
+                        atraso = atrasoEntrada;
                     }
-                    System.out.println("Aterrissagem esperada: " + horario);
-                    System.out.println("Aterrissagem real: " + saidaReal);
-                    System.out.println("Atraso: " + atrasoEntrada);
                 }
+
+                    terminoUsoPista = horario + atraso + 500;
+                    saidaReal = horario + atraso;
+
+                    System.out.println(Thread.currentThread().getName() +
+                                    System.lineSeparator() +
+                                    "Aterrissagem esperada: " + horario +
+                                    System.lineSeparator() +
+                                    "Aterrissagem real: " + saidaReal +
+                                    System.lineSeparator() +
+                                    "Atraso: " + atrasoEntrada);
             }
         }
     }
