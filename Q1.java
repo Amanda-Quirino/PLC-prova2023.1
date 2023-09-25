@@ -2,7 +2,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
 public class Q1 {
@@ -14,6 +13,10 @@ public class Q1 {
     // Lista com as threads que representam as pistas
     private static List<Thread> thPistas = new ArrayList<Thread>();
     private static Integer numPistas = 0;
+
+    // Lock e Condition para que as listas com os horarios possam ser acessadas por mais de 1 pista ao mesmo tempo
+    private static Lock aLock = new ReentrantLock();
+    private static Condition varCond = aLock.newCondition();
 
     public static void main(String[] args) {
         // Scanner para pegar os inputs dado pelo usuario
@@ -78,10 +81,6 @@ public class Q1 {
         // Horario que o aviao realmente aterrissou ou decolou
         private Integer saidaReal;
 
-        // Lock e Condition para que as listas com os horarios possam ser acessadas por mais de 1 pista ao mesmo tempo
-        private Lock aLock = new ReentrantLock();
-        private Condition varCond = aLock.newCondition();
-
         // Construtor para salvarmos o nome da pista que essa instancia representa
         public Pista(int num) {
             this.numPista = num;
@@ -97,7 +96,7 @@ public class Q1 {
                     while(terminoUsoPista.get(numPista) != Collections.min(terminoUsoPista) && (!horarioSaidas.isEmpty() || !horarioEntradas.isEmpty())) {
                         // Botamos essa instancia para esperar por 2 milisegundos
                         try {
-                            varCond.await(2, TimeUnit.MILLISECONDS);
+                            varCond.await();
                         } catch (InterruptedException e) {}
                     }
 
@@ -128,6 +127,14 @@ public class Q1 {
                     }
 
                     terminoUsoPista.set(numPista, horario + atraso + 500);
+
+                    // Avisa para as outras instancias que essa pista terminou de liberar um aviao
+                    varCond.signalAll();
+                } finally {
+                    // Liberando o lock
+                    aLock.unlock();
+
+                    // Printando as informacoes pedidas na questao
                     saidaReal = horario + atraso;
         
                     System.out.println(Thread.currentThread().getName() +
@@ -137,11 +144,6 @@ public class Q1 {
                                     "Aterrissagem real: " + saidaReal +
                                     System.lineSeparator() +
                                     "Atraso: " + atraso);
-                    // Avisa para as outras instancias que essa pista terminou de liberar um aviao
-                    varCond.signalAll();
-                } finally {
-                    // Liberando o lock
-                    aLock.unlock();
                 }
             }
 
