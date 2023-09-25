@@ -2,14 +2,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.locks.*;
 
-public class aviao {
+public class Q1 {
     private static List<Integer> horarioSaidas = new ArrayList<Integer>();
     private static List<Integer> horarioEntradas = new ArrayList<Integer>();
+    private static List<Integer> terminoUsoPista = new ArrayList<Integer>();
+    private static List<Thread> thPistas = new ArrayList<Thread>();
     private static Integer numPistas = 0;
-    private static Integer atrasoSaida = 0;
-    private static Integer atrasoEntrada = 0;
-    private static List<Thread> thList = new ArrayList<Thread>();
 
     public static void main(String[] args) {
         // Scanner para pegar os inputs dado pelo usuario
@@ -44,82 +44,83 @@ public class aviao {
         // Pegando a quantidade de pistas disponiveis
         System.out.println("Digite k: ");
         numPistas = leitura.nextInt();
+
+        for (int i=0; i<numPistas; i++) {
+            terminoUsoPista.add(i);
+            thPistas.add(new Thread(new Pista(i)));
+            thPistas.get(i).start();
+        }
+
+        for (int i=0; i<numPistas; i++) {
+            try {
+                thPistas.get(i).join();
+            } catch (InterruptedException e) { }
+        }
         
         // Fechando o scanner ja que nao vamos ler mais nada
         leitura.close();
-
-        // Criando uma thread para cada pista
-        for (int i=0; i<numPistas; i++) {
-            thList.add((new Thread(new Pista(0))));
-            thList.get(i).start();
-        }
-
-        // Loop para que o codigo so terminede rodar quando todas as threads terminarem
-        for (int i=0; i<thList.size(); i++) {
-            try {
-                thList.get(i).join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
-    // Classe Runnable para podermos ver quais avioes decolam e saem
-    public static class Pista implements Runnable {
-        Integer terminoUsoPista;
-        Integer saidaReal;
-        Integer atraso;
+    private static class Pista implements Runnable{
+        private Integer numPista;
+        private Integer atraso;
+        private Integer horario;
+        private Integer saidaReal;
+        private Lock aLock = new ReentrantLock();
+        private Condition varCond = aLock.newCondition();
 
-        public Pista (Integer numero) {
-            this.terminoUsoPista = numero;
+        public Pista(int num) {
+            this.numPista = num;
         }
 
-        @Override
         public void run() {
-            Integer horario;
             while (horarioSaidas.size() != 0 || horarioEntradas.size() != 0) {
-                synchronized(this) {
-                    // Calculando o possivel atraso do proximo aviao a sair
-                    if (horarioSaidas.size() != 0) {
-                        atrasoSaida = horarioSaidas.getFirst() < terminoUsoPista ? terminoUsoPista - horarioSaidas.getFirst() : 0;
+                aLock.lock();
+                try {
+                    while(terminoUsoPista.get(numPista) != Collections.min(terminoUsoPista)) {
+                        try {
+                            varCond.await();
+                        } catch (InterruptedException e) {}
                     }
-                    // Calculando o possivel atraso do proximo aviao a aterrisar
-                    if (horarioEntradas.size() != 0) {
-                        atrasoEntrada = horarioEntradas.getFirst() < terminoUsoPista ? terminoUsoPista - horarioEntradas.getFirst() : 0;
-                    }
+
                     // Caso nao tenhamos mais avioes saindo, iremos printar o proximo aviao a aterrissar
                     if (horarioSaidas.size() == 0) {
+                        atraso = horarioEntradas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioEntradas.getFirst() : 0;
                         horario = horarioEntradas.remove(0);
-                        atraso = atrasoEntrada;
                     }
                     // Caso nao tennhamos mais avioes aterrisando, printamos o proximo aviao a sair
                     else if (horarioEntradas.size() == 0) {
+                        atraso = horarioSaidas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioSaidas.getFirst() : 0;;
                         horario = horarioSaidas.remove(0);
-                        atraso = atrasoSaida;
                     }
                     // Caso o horario do proximo aviao a sair seja mais cedo do que o proximo a aterrissar
                     else if (horarioSaidas.getFirst() < horarioEntradas.getFirst()){
+                        atraso = horarioSaidas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioSaidas.getFirst() : 0;
                         horario = horarioSaidas.remove(0);
-                        atraso = atrasoSaida;
                     }
                     // Caso contrario
                     else {
+                        atraso = horarioEntradas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioEntradas.getFirst() : 0;
                         horario = horarioEntradas.remove(0);
-                        atraso = atrasoEntrada;
                     }
-                }
 
-                    terminoUsoPista = horario + atraso + 500;
+                    varCond.signalAll();
+
+                    terminoUsoPista.set(numPista, horario + atraso + 500);
                     saidaReal = horario + atraso;
-
+        
                     System.out.println(Thread.currentThread().getName() +
                                     System.lineSeparator() +
                                     "Aterrissagem esperada: " + horario +
                                     System.lineSeparator() +
                                     "Aterrissagem real: " + saidaReal +
                                     System.lineSeparator() +
-                                    "Atraso: " + atrasoEntrada);
+                                    "Atraso: " + atraso);
+                } finally {
+                    aLock.unlock();
+                }
             }
+
         }
     }
 }
