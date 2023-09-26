@@ -43,15 +43,16 @@ public class ThreadPoolTarefas {
             System.out.print("Indique as informações da tarefa " + (i + 1) + ": ");
             String tarefaInfo = scanner.nextLine();
 
-            String[] partes = tarefaInfo.split(" ");
-            int id = Integer.parseInt(partes[0]);
-            int tempo = Integer.parseInt(partes[1]);
+            String[] listaString = tarefaInfo.split(" ");
+            int id = Integer.parseInt(listaString[0]);
+            int tempo = Integer.parseInt(listaString[1]);
 
             List<Integer> tarefasPendentes = new ArrayList<>();
-            for (int j = 2; j < partes.length; j++) {
-                tarefasPendentes.add(Integer.parseInt(partes[j]));
+            for (int j = 2; j < listaString.length; j++) {
+                if (!listaString[j].isEmpty()) {
+                    tarefasPendentes.add(Integer.parseInt(listaString[j]));
+                }
             }
-
             filaTarefas.add(new Tarefa(id, tempo, tarefasPendentes));
         }
 
