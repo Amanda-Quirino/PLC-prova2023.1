@@ -3,35 +3,30 @@ import java.util.concurrent.*;
 
 public class ThreadPoolTarefas {
     public static void processarTarefas(List<Tarefa> filaTarefas, ExecutorService executor) {
-        Iterator<Tarefa> iterador = filaTarefas.iterator();
+        List<Tarefa> filaReserva = new ArrayList<>(filaTarefas);
 
-        while (iterador.hasNext()) {
-            Tarefa tarefaAtual = iterador.next();
-            int idParaRemover = tarefaAtual.id;
+        while (!filaTarefas.isEmpty()) {
+            Tarefa tarefaAtual = filaTarefas.get(0);
+            filaTarefas.remove(0);
 
-            if (tarefaAtual.tarefasPendentes.isEmpty()) {
+            if (podeIniciarTarefa(tarefaAtual, filaReserva)) {
                 executor.submit(() -> {
                     try {
                         Thread.sleep(tarefaAtual.tempo);
-                        System.out.println("tarefa " + tarefaAtual.id + " feita");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    System.out.println("Tarefa " + tarefaAtual.id + " concluída");
+                    filaReserva.remove(tarefaAtual);
                 });
-
-                // Remove o ID da lista de pendências de todas as tarefas
-                for (Tarefa tarefa : filaTarefas) {
-                    tarefa.tarefasPendentes.removeIf(pendencia -> pendencia == idParaRemover);
-                }
-
-                // Remove a tarefa da fila
-                iterador.remove();
+            } else {
+                filaTarefas.add(tarefaAtual);
             }
         }
-        // Trata as pendências
-        if (!filaTarefas.isEmpty()){
-            processarTarefas(filaTarefas, executor);
-        }
+    }
+
+    private static boolean podeIniciarTarefa(Tarefa tarefa, List<Tarefa> listaTarefas) {
+        return tarefa.tarefasPendentes.stream().noneMatch(id -> listaTarefas.stream().anyMatch(t -> t.id == id));
     }
 
     public static void main(String[] args) {
@@ -39,11 +34,11 @@ public class ThreadPoolTarefas {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Indique o número de operadores e de tarefas: ");
-        int nOpereradores = scanner.nextInt();
+        int nOperadores = scanner.nextInt();
         int nTarefas = scanner.nextInt();
 
         for (int i = 0; i < nTarefas; i++) {
-            System.out.print("Indique as informações da tarefa " + (i + 1) + " (indique -1 para fim da lista de tarefas pendentes): ");
+            System.out.print("Indique as informações da tarefa " + (i + 1) + ": ");
 
             int id = scanner.nextInt();
             int tempo = scanner.nextInt();
@@ -62,7 +57,7 @@ public class ThreadPoolTarefas {
             filaTarefas.add(new Tarefa(id, tempo, tarefasPendentes));
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(nOpereradores);
+        ExecutorService executor = Executors.newFixedThreadPool(nOperadores);
 
         processarTarefas(filaTarefas, executor);
 
