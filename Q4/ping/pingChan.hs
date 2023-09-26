@@ -1,26 +1,28 @@
 import Control.Concurrent
 
 -- Modulo que envia as mensagens
-envia :: MVar Int -> MVar Int -> [Int] -> IO ()
+envia :: Chan String -> MVar Int -> [Int] -> IO ()
 envia mv fim (x:xa) = do
-    putMVar mv x
+    putStrLn $ "Ping: " ++ show x
+    writeChan mv (show x)
     envia mv fim xa
 envia mv fim [] = do
     i <- takeMVar fim
     putMVar fim (i-1)
 
 -- Modulo que recebe as mensagens
-recebe :: MVar Int -> MVar Int -> IO ()
+recebe :: Chan String -> MVar Int -> IO ()
 recebe mv fim = do 
-    nu <- takeMVar mv
+    nu <- readChan mv
     rcv mv fim nu
     where
-        rcv mv fim 0 = do
+        rcv mv fim "0" = do
             i <- takeMVar fim
             putMVar fim (i - 1)
         rcv mv fim num = do
-            putStrLn (show num)
-            n <- takeMVar mv
+            putStrLn $ "Pong: " ++ num
+            threadDelay 1000
+            n <- readChan mv
             rcv mv fim n
 
 -- Modulo que espera as mensagens serem enviadas e recebidas
@@ -38,8 +40,9 @@ waitThreads fim = do
 main :: IO ()
 main = do
     fim <- newMVar 2
+    ch <- newChan
     mv <- newEmptyMVar
-    forkIO (envia mv fim (reverse [0..10]))
-    forkIO (recebe mv fim)
+    forkIO (envia ch fim (reverse [0..30]))
+    forkIO (recebe ch fim)
     waitThreads fim
     return ()
