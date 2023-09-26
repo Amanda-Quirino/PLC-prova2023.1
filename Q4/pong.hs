@@ -5,16 +5,23 @@ import Control.Concurrent.STM
 recebe :: TVar String -> MVar Int -> IO()
 recebe tv fim = do
     x <- atomically (readTVar tv)
+    putStrLn $ "Pong: " ++ x
     printa tv fim x
         where
             printa tv fim "0" = do
-                putStrLn "Pong: 0"
                 i <- takeMVar fim
                 putMVar fim (i-1)
             printa tv fim nu = do
-                putStrLn $ "Pong: " ++ nu
-                i <- atomically (readTVar tv)
-                printa tv fim i
+                i <- atomically (do{t <- readTVar tv;
+                writeTVar tv "-1";
+                return t;
+                })
+                if (i /= "-1") then
+                    do
+                        putStrLn $ "Pong: " ++ i
+                        printa tv fim i
+                else
+                    printa tv fim i
 
 -- Modulo que envia as mensagens
 envia :: TVar String -> MVar Int -> [Int] -> IO()
@@ -22,11 +29,15 @@ envia tv fim [] = do
     i <- takeMVar fim
     putMVar fim (i-1)
 envia tv fim (x:xa) = do
-    putStrLn $ "Ping: " ++ show x
-    atomically $ do
-        writeTVar tv (show x)
-    atomically (writeTVar tv (show x))
-    envia tv fim xa
+    t <- atomically(readTVar tv)
+    if (t == "-1") then
+        do
+            atomically (writeTVar tv (show x))
+            putStrLn $ "Ping: " ++ show x
+            envia tv fim xa
+    else
+        envia tv fim (x:xa)
+        
 
 -- Modulo que espera as mensagens serem enviadas e recebidas
 waitThreads :: MVar Int -> IO ()

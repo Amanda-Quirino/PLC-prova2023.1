@@ -21,7 +21,6 @@ recebe mv fim = do
             putMVar fim (i - 1)
         rcv mv fim num = do
             putStrLn $ "Pong: " ++ num
-            threadDelay 1000
             n <- readChan mv
             rcv mv fim n
 
