@@ -1,31 +1,34 @@
 package Q4;
 
 public class ServerPing {
-    private String mensagem;
+    private String [] mensagem = new String[0];
     // Variavel para dizer se a mensagem foi recebida e passada para o outro usuario
     private boolean recebi;
     private boolean fim;
 
     public synchronized String get() {
-        while (!recebi && !fim) {
+        while (mensagem.length == 0 && !fim) {
             try {
                 System.out.println("Esperando mensagem ...");
                 wait();
             } catch (InterruptedException e) { }
         }
-        recebi = false;
+        String retorno = mensagem[0];
+        String[] auxMensagem = mensagem;
+        mensagem = new String[mensagem.length - 1];
+        System.arraycopy(auxMensagem, 1, mensagem, 0, auxMensagem.length - 1);
         notifyAll();
-        return mensagem;
+        return retorno;
     }
 
     public synchronized void put(String msg) {
-        while (recebi) {
-            try {
-                wait();
-            } catch (InterruptedException e) { }
+        if (msg == "fim") {
+            fim = true;
         }
-        mensagem = msg;
-        recebi = true;
+        String[] auxMensagem = this.mensagem;
+        this.mensagem = new String[this.mensagem.length + 1];
+        System.arraycopy(auxMensagem, 0, this.mensagem, 0, auxMensagem.length);
+        this.mensagem[this.mensagem.length - 1] = msg;
         notifyAll();
     }
 }
