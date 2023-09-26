@@ -107,25 +107,22 @@ public class Q1 {
 
                     // Caso nao tenhamos mais avioes saindo, iremos printar o proximo aviao a aterrissar
                     if (horarioSaidas.size() == 0) {
-                        atraso = horarioEntradas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioEntradas.getFirst() : 0;
                         horario = horarioEntradas.remove(0);
                     }
                     // Caso nao tennhamos mais avioes aterrisando, printamos o proximo aviao a sair
                     else if (horarioEntradas.size() == 0) {
-                        atraso = horarioSaidas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioSaidas.getFirst() : 0;;
                         horario = horarioSaidas.remove(0);
                     }
                     // Caso o horario do proximo aviao a sair seja mais cedo do que o proximo a aterrissar
                     else if (horarioSaidas.getFirst() < horarioEntradas.getFirst()){
-                        atraso = horarioSaidas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioSaidas.getFirst() : 0;
                         horario = horarioSaidas.remove(0);
                     }
                     // Caso contrario
                     else {
-                        atraso = horarioEntradas.getFirst() < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horarioEntradas.getFirst() : 0;
                         horario = horarioEntradas.remove(0);
                     }
 
+                    atraso = horario < terminoUsoPista.get(numPista) ? terminoUsoPista.get(numPista) - horario : 0;
                     terminoUsoPista.set(numPista, horario + atraso + 500);
 
                     // Avisa para as outras instancias que essa pista terminou de liberar um aviao
