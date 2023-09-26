@@ -6,27 +6,28 @@ public class ThreadPoolTarefas {
         List<Tarefa> filaReserva = new ArrayList<>(filaTarefas);
 
         while (!filaTarefas.isEmpty()) {
-            Tarefa tarefaAtual = filaTarefas.get(0);
-            filaTarefas.remove(0);
+            Iterator<Tarefa> iterator = filaTarefas.iterator();
+            while (iterator.hasNext()) {
+                Tarefa tarefaAtual = iterator.next();
 
-            if (podeIniciarTarefa(tarefaAtual, filaReserva)) {
-                executor.submit(() -> {
-                    try {
-                        Thread.sleep(tarefaAtual.tempo);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println("Tarefa " + tarefaAtual.id + " concluída");
-                    filaReserva.remove(tarefaAtual);
-                });
-            } else {
-                filaTarefas.add(tarefaAtual);
+                if (podeIniciarTarefa(tarefaAtual, filaReserva)) {
+                    executor.submit(() -> {
+                        try {
+                            Thread.sleep(tarefaAtual.tempo);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println("Tarefa " + tarefaAtual.id + " concluída");
+                        filaReserva.remove(tarefaAtual);
+                    });
+                    iterator.remove();
+                }
             }
         }
     }
 
-    private static boolean podeIniciarTarefa(Tarefa tarefa, List<Tarefa> listaTarefas) {
-        return tarefa.tarefasPendentes.stream().noneMatch(id -> listaTarefas.stream().anyMatch(t -> t.id == id));
+    public static boolean podeIniciarTarefa(Tarefa tarefa, List<Tarefa> listaTarefas) {
+        return tarefa.tarefasPendentes.stream().noneMatch(id -> listaTarefas.stream().anyMatch(task -> task.id == id));
     }
 
     public static void main(String[] args) {
@@ -36,24 +37,21 @@ public class ThreadPoolTarefas {
         System.out.print("Indique o número de operadores e de tarefas: ");
         int nOperadores = scanner.nextInt();
         int nTarefas = scanner.nextInt();
+        scanner.nextLine();
 
         for (int i = 0; i < nTarefas; i++) {
             System.out.print("Indique as informações da tarefa " + (i + 1) + ": ");
+            String tarefaInfo = scanner.nextLine();
 
-            int id = scanner.nextInt();
-            int tempo = scanner.nextInt();
+            String[] partes = tarefaInfo.split(" ");
+            int id = Integer.parseInt(partes[0]);
+            int tempo = Integer.parseInt(partes[1]);
+
             List<Integer> tarefasPendentes = new ArrayList<>();
-            boolean continuar = true;
-
-            while (continuar && scanner.hasNextInt()) {
-                int idTarefa = scanner.nextInt();
-
-                if (idTarefa == -1) {
-                    continuar = false;
-                } else {
-                    tarefasPendentes.add(idTarefa);
-                }
+            for (int j = 2; j < partes.length; j++) {
+                tarefasPendentes.add(Integer.parseInt(partes[j]));
             }
+
             filaTarefas.add(new Tarefa(id, tempo, tarefasPendentes));
         }
 
