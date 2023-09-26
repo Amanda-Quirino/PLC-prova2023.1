@@ -1,0 +1,6 @@
+Em java, usamos syncronized para o ping, de forma que a thread que recebe a mensagem vai pedir a proxima mensagem mesmo que o outro usuario nao tenha enviado ela ainda,
+e lock para o pong, de forma que a proxima mensagem so sera pedida quando for entregue.
+
+A principal dificuldade, tanto em Java quanto em Haskell, foi garantir a sincronizacao entre as mensagens de forma que nenhuma delas se perca.
+Porém, apesar de ambas terem essa dificuldade, nota-se que foi mais difícil fazer a implementação em Java, visto que nela precisavamos dar awaits e notifiyAll/signalAll para fazer as Threads entrarem em espera e acordarem.
+A facilidade em java que nao teve em Haskell é que nós podemos pedir explicitamente para que as Threads durmam e acordem, enquanto que em haskell é que não precisamos fazer um lock explícito para gerenciar as threads.

@@ -4,18 +4,23 @@ import Control.Concurrent.STM
 -- Modulo que recebe as mensagens
 recebe :: TVar String -> MVar Int -> IO()
 recebe tv fim = do
+    -- Lendo a primeira mensagem e printando ela
     x <- atomically (readTVar tv)
     putStrLn $ "Pong: " ++ x
     printa tv fim x
         where
+            -- Caso a gente receba a mensagem que marca o fim
             printa tv fim "0" = do
                 i <- takeMVar fim
                 putMVar fim (i-1)
+            -- Caso a gente receba uma mensagem qualquer
             printa tv fim nu = do
+                -- Pegamos a mensagem e armazenamos -1 em tv para indicar que a proxima mensagem pode ser enviada
                 i <- atomically (do{t <- readTVar tv;
                 writeTVar tv "-1";
                 return t;
                 })
+                -- Caso a mensagem salva seja -1, significa que a proxima mensagem ainda nao foi enviada
                 if (i /= "-1") then
                     do
                         putStrLn $ "Pong: " ++ i
@@ -30,6 +35,7 @@ envia tv fim [] = do
     putMVar fim (i-1)
 envia tv fim (x:xa) = do
     t <- atomically(readTVar tv)
+    -- Caso a mensagem seja -1 entao a ultima mensagem foi lida e podemos enviar a proxima
     if (t == "-1") then
         do
             atomically (writeTVar tv (show x))
