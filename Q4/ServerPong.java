@@ -1,8 +1,8 @@
-package Q4.ping;
+package Q4;
 
 import java.util.concurrent.locks.*;
 
-public class ServerPingLck {
+public class ServerPong {
     private Lock lck = new ReentrantLock();
     private Condition varCond = lck.newCondition();
 

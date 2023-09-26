@@ -1,6 +1,6 @@
-package Q4.pong;
+package Q4;
 
-public class ServerPong {
+public class ServerPing {
     private String mensagem;
     // Variavel para dizer se a mensagem foi recebida e passada para o outro usuario
     private boolean recebi;

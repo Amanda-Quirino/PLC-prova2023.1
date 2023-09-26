@@ -1,11 +1,14 @@
-package Q4.ping;
+package Q4;
 
 import java.util.Random;
 
-public class Envia implements Runnable{
-    private ServerPingLck server;
+import Q4.ServerPing;
+import Q4.ServerPong;
 
-    public Envia(ServerPingLck srv) {
+public class Envia implements Runnable{
+    private ServerPing server;
+
+    public Envia(ServerPing srv) {
         this.server = srv;
     }
 
@@ -26,7 +29,7 @@ public class Envia implements Runnable{
         for (String msg : mensagemEnviadas) {
             server.put(msg);
             try {
-                Thread.sleep(rdm.nextInt(300));
+                Thread.sleep(rdm.nextInt(1000));
             } catch (InterruptedException e) {}
         }
 

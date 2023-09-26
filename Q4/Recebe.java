@@ -1,11 +1,14 @@
-package Q4.ping;
+package Q4;
 
 import java.util.Random;
 
-public class Recebe implements Runnable{
-    private ServerPingLck server;
+import Q4.ServerPing;
+import Q4.ServerPong;
 
-    public Recebe (ServerPingLck srv) {
+public class Recebe implements Runnable{
+    private ServerPing server;
+
+    public Recebe (ServerPing srv) {
         this.server = srv;
     }
 
