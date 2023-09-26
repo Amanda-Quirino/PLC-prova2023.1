@@ -7,8 +7,8 @@ recebe tv fim = do
     x <- atomically (readTVar tv)
     printa tv fim x
         where
-            printa tv fim "-5" = do
-                putStrLn "Pong: -5"
+            printa tv fim "0" = do
+                putStrLn "Pong: 0"
                 i <- takeMVar fim
                 putMVar fim (i-1)
             printa tv fim nu = do
@@ -47,7 +47,8 @@ main = do
         readTVar t;
         return t;
     })
-    forkIO (envia tv fim (reverse [(-5)..10]));
+    i <- readLn
+    forkIO (envia tv fim (reverse [0..i]));
     forkIO (recebe tv fim);
     waitThreads fim
     return ()

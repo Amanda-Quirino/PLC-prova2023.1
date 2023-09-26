@@ -44,7 +44,8 @@ main = do
     fim <- newMVar 2
     ch <- newChan
     mv <- newEmptyMVar
-    forkIO (envia mv fim (reverse [0..30]))
+    i <- readLn
+    forkIO (envia mv fim (reverse [0..i]))
     forkIO (recebe mv fim)
     waitThreads fim
     return ()
